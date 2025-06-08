@@ -22,7 +22,26 @@ const ReportPage: React.FC = () => {
         }
       });
 
-      
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Нет доступа');
+          keycloak.updateToken(30);
+          return;
+        }
+        throw new Error(`Ошибка сервера: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'report.json';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
